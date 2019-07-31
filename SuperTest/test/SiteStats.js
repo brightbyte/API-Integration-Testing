@@ -1,13 +1,14 @@
 const { assert } = require('chai');
-let request = require('supertest');
+const request = require('supertest');
 const config = require('../config.json');
+const utils = require('../utils');
 
-request = request.agent(config.base_uri);
 
 describe("Testing site statistics' edits value", function () {
   // disable timeouts
   this.timeout(0);
 
+  const user = request.agent(config.base_uri);
   const siteStatsParams = {
     action: 'query',
     meta: 'siteinfo',
@@ -15,97 +16,52 @@ describe("Testing site statistics' edits value", function () {
     format: 'json',
   };
 
-  let editsStats, editToken;
+  const variables = {};
 
-  before((done) => {
-    //  Login user and get edit token
-    request
-      .get('')
-      .query({
-        action: 'query', meta: 'tokens', type: 'login', format: 'json',
-      })
-      .expect(200)
-      .then((response) => {
-        const { logintoken } = response.body.query.tokens;
-        return request
-          .post('')
-          .type('form')
-          .send({
-            action: 'login',
-            lgname: config.user.name,
-            lgpassword: config.user.password,
-            lgtoken: logintoken,
-            format: 'json',
-          })
-          .expect(200);
-      })
-      .then((response) => {
-        assert.equal(response.body.login.result, 'Success');
-      })
-      .then(() => {
-          request
-              .get('')
-              .query({ action: 'query', meta: 'tokens', format: 'json' })
-              .expect(200)
-      })
-      .then((response) => {
-        editToken = response.body.query.tokens.csrftoken;
-        done();
-      })
-      .catch((err) => {
-        done(err);
-      });
+  before(async () => {
+    const loginToken = await utils.loginToken(user);
+    await utils.login(user, config.user.name, config.user.password, loginToken);
+
+    variables.editToken = await utils.editToken(user);
   });
 
-  it('should GET site statistics', (done) => {
-    request
+  it('should GET site statistics', async () => {
+    await user
       .get('')
       .query(siteStatsParams)
       .expect(200)
       .then((response) => {
-        editsStats = response.body.query.statistics.edits;
-        assert.isNumber(editsStats);
-        done();
-      })
-      .catch((err) => {
-        done(err);
+        variables.editsStats = parseInt(response.body.query.statistics.edits, 10);
+        assert.isNumber(variables.editsStats);
       });
   });
 
-  it('should edit a page', (done) => {
-    request
+  it('should edit a page', async () => {
+    await user
       .post('')
       .type('form')
       .send({
         action: 'edit',
         title: 'TestingSiteStats',
-        token: editToken,
+        token: variables.editToken,
         text: 'testing site stats ..',
         format: 'json',
       })
       .expect(200)
       .then((response) => {
         assert.equal(response.body.edit.result, 'Success');
-        done();
-      })
-      .catch((err) => {
-        done(err);
       });
   });
 
-  it('should GET an increased site edits stat', (done) => {
-    request
+  it('should GET an increased site edits stat', async () => {
+    await user
       .get('')
       .query(siteStatsParams)
       .expect(200)
       .then((response) => {
-        const { edits } = response.body.query.statistics;
+        const edits = parseInt(response.body.query.statistics.edits, 10);
         assert.isNumber(edits);
-        assert.isAbove(edits, editsStats);
-        done();
-      })
-      .catch((err) => {
-        done(err);
+        assert.isAbove(edits, variables.editsStats);
       });
   });
 });

@@ -1,0 +1,89 @@
+---
+test_name: Create and edit page a few times and then compare revisions
+
+includes:
+  - !include common.yaml
+
+stages:
+  - type: ref
+    id: login_token
+  - type: ref
+    id: user_login
+  - type: ref
+    id: get_edit_token
+  - name: Create page
+    request: &edit
+      url: "{base_uri}"
+      method: POST
+      params:
+        action: edit
+        title: Something
+        format: json
+      data:
+        token: "{edit_token}"
+#        createonly: true
+        summary: create page
+        text: "Counting: \n* One"
+    response:
+      save:
+        body:
+          revision1: edit.newrevid
+  - name: edit page
+    request:
+      <<: *edit
+      data:
+        token: "{edit_token}"
+        summary: Revision 2
+        text: "Counting: \n* One \n* Two"
+    response:
+      body:
+        edit:
+          result: Success
+  - name: edit page
+    request:
+      <<: *edit
+      data:
+        token: "{edit_token}"
+        summary: Revision 3
+        text: "Counting: \n* One \n* Two \n* Three"
+    response:
+      save:
+        body:
+          revision3: edit.newrevid 
+  - name: edit page
+    request:
+      <<: *edit
+      data:
+        token: "{edit_token}"
+        summary: Revision 4
+        text: "Counting: \n* One \n* Two"
+    response:
+      save:
+        body:
+          revision4: edit.newrevid 
+  - name: compare revisions 1 and 4
+    request:
+      url: "{base_uri}"
+      params: &compare_params
+        action: compare
+        fromrev: "{revision1}"
+        torev: "{revision4}"
+        format: json
+    response:
+      body:
+        $ext:
+          function: tavern.testutils.helpers:validate_regex
+          extra_kwargs:
+            expression: '<td class=.diff-addedline.><div><ins class=.*diffchange diffchange-inline.*\* Two</ins>'
+  - name: compare revisions 3 and 4
+    request:
+      url: "{base_uri}"
+      params:
+        <<: *compare_params
+        fromrev: "{revision3}"
+    response:
+      body:
+        $ext:
+          function: tavern.testutils.helpers:validate_regex
+          extra_kwargs:
+            expression: '<td class=.diff-deletedline.><div><del class=.*diffchange.*>\* Three</del>'

@@ -1,0 +1,51 @@
+---
+test_name: Testing site statistics' edits value
+
+includes:
+  - !include common.yaml
+
+stages:
+  - name: Get site statistics
+    request: &sitestats
+      url: "{base_uri}"
+      params:
+        action: query
+        meta: siteinfo
+        siprop: statistics
+        format: json
+    response:
+      save:
+        body:
+          edits_stats: query.statistics.edits
+  - type: ref
+    id: login_token
+  - type: ref
+    id: user_login
+  - type: ref
+    id: get_edit_token
+  - name: Create page
+    request:
+      url: "{base_uri}"
+      method: POST
+      params:
+        action: edit
+        title: SiteStats
+        format: json
+      data:
+        token: "{edit_token}"
+#        createonly: true
+        summary: create page
+        text: "Site Stats ..."
+    response:
+      body:
+        edit:
+          result: Success
+  - name: Get site stats
+    request: *sitestats
+    response:
+      body:
+        $ext:
+          function: utils:test_greater_than
+          extra_kwargs:
+            path: query.statistics.edits
+            value: "{edits_stats}"

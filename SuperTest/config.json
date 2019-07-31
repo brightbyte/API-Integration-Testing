@@ -1,0 +1,7 @@
+{
+  "base_uri": "http://default.web.mw.localhost:8080/mediawiki/api.php",
+  "user": {
+    "name": "Wikiuser",
+    "password": "wikiuser123"
+  }
+}

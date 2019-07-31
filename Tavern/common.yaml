@@ -1,0 +1,51 @@
+name: Common test information
+description: Information for Mediawiki test setup
+
+variables:
+  base_uri: http://default.web.mw.localhost:8080/mediawiki/api.php
+  user:
+    name: Wikiuser
+    password: wikiuser123
+
+stages:
+  - id: login_token
+    name: Get login token
+    request:
+      url: "{base_uri}"
+      params:
+        action: query
+        meta: tokens
+        type: login
+        format: json
+    response:
+      save:
+        body:
+          login_token: query.tokens.logintoken
+  - id: user_login
+    name: Login the user
+    request:
+      url: "{base_uri}"
+      method: POST
+      params:
+        action: login
+        format: json
+      data:
+        lgname: "{user.name}"
+        lgpassword: "{user.password}"
+        lgtoken: "{login_token}"
+    response:
+      body:
+        login:
+          result: Success
+  - id: get_edit_token
+    name: Get edit token
+    request:
+      url: "{base_uri}"
+      params:
+        action: query
+        meta: tokens
+        format: json
+    response:
+      save:
+        body:
+          edit_token: query.tokens.csrftoken

@@ -13,10 +13,11 @@ describe('Diff Compare with Variables', function () {
   const variables = {};
 
   before(async () => {
+    // Login user
     const login = await utils.login(user, config.user.name, config.user.password);
-
     assert.equal(login.result, 'Success');
 
+    // Get edit token for user
     variables.editToken = await utils.editToken(user);
   });
 

@@ -3,5 +3,9 @@
   "user": {
     "name": "Wikiuser",
     "password": "wikiuser123"
+  },
+  "admin": {
+    "name": "Admin",
+    "password": "dockerpass"
   }
 }

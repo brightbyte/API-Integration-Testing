@@ -1,6 +1,4 @@
-const { assert } = require('chai');
-
-const loginToken = request => request
+const loginToken = requestAgent => requestAgent
   .get('')
   .query({
     action: 'query', meta: 'tokens', type: 'login', format: 'json',
@@ -8,7 +6,7 @@ const loginToken = request => request
   .expect(200)
   .then(response => response.body.query.tokens.logintoken);
 
-const login = (request, username, password, token) => request
+const login = (requestAgent, username, password, token) => requestAgent
   .post('')
   .type('form')
   .send({
@@ -19,30 +17,38 @@ const login = (request, username, password, token) => request
     format: 'json',
   })
   .expect(200)
-  .then((response) => {
-    assert.equal(response.body.login.result, 'Success');
-  });
+  .then(response => response.body.login);
 
-const editToken = request => request
+const editToken = requestAgent => requestAgent
   .get('')
   .query({ action: 'query', meta: 'tokens', format: 'json' })
   .expect(200)
   .then(response => response.body.query.tokens.csrftoken);
 
-const edit = (request, params) => {
+const edit = (requestAgent, params) => {
   const editParams = {
     action: 'edit',
     format: 'json',
   };
-  return request
+  return requestAgent
     .post('')
     .type('form')
     .send({ ...editParams, ...params })
     .expect(200)
-    .then((response) => {
-      assert.equal(response.body.edit.result, 'Success');
-      return response.body.edit.newrevid;
-    });
+    .then(response => response.body);
+};
+
+const protect = (requestAgent, params) => {
+  const protectParams = {
+    action: 'protect',
+    format: 'json',
+  };
+  return requestAgent
+    .post('')
+    .type('form')
+    .send({ ...protectParams, ...params })
+    .expect(200)
+    .then(response => response.body.protect);
 };
 
 module.exports = {
@@ -50,4 +56,5 @@ module.exports = {
   login,
   editToken,
   edit,
+  protect,
 };

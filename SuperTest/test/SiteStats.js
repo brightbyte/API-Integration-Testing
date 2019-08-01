@@ -20,7 +20,9 @@ describe("Testing site statistics' edits value", function () {
 
   before(async () => {
     const loginToken = await utils.loginToken(user);
-    await utils.login(user, config.user.name, config.user.password, loginToken);
+    const login = await utils.login(user, config.user.name, config.user.password, loginToken);
+
+    assert.equal(login.result, 'Success');
 
     variables.editToken = await utils.editToken(user);
   });
@@ -37,20 +39,12 @@ describe("Testing site statistics' edits value", function () {
   });
 
   it('should edit a page', async () => {
-    await user
-      .post('')
-      .type('form')
-      .send({
-        action: 'edit',
-        title: 'TestingSiteStats',
-        token: variables.editToken,
-        text: 'testing site stats ..',
-        format: 'json',
-      })
-      .expect(200)
-      .then((response) => {
-        assert.equal(response.body.edit.result, 'Success');
-      });
+    const editPage = await utils.edit(user, {
+      title: 'TestingSiteStats',
+      token: variables.editToken,
+      text: 'testing site stats ..',
+    });
+    assert.equal(editPage.edit.result, 'Success');
   });
 
   it('should GET an increased site edits stat', async () => {

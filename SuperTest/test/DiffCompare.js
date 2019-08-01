@@ -14,37 +14,54 @@ describe('Diff Compare with Variables', function () {
 
   before(async () => {
     const loginToken = await utils.loginToken(user);
-    await utils.login(user, config.user.name, config.user.password, loginToken);
+    const login = await utils.login(user, config.user.name, config.user.password, loginToken);
+
+    assert.equal(login.result, 'Success');
 
     variables.editToken = await utils.editToken(user);
   });
 
   it('should edit a page', async () => {
-    variables.revision1 = await utils.edit(user, {
+    const editPage = await utils.edit(user, {
       title: 'DiffCompare',
       token: variables.editToken,
       text: 'Counting: \n*One',
     });
+
+    assert.equal(editPage.edit.result, 'Success');
+    variables.revision1 = editPage.edit.newrevid;
   });
 
   it('should edit a page, revision 2', async () => {
-    await utils.edit(user, { title: 'DiffCompare', token: variables.editToken, text: 'Counting: \n* One \n* Two' });
-  });
-
-  it('should edit a page, revision 3', async () => {
-    variables.revision3 = await utils.edit(user, {
-      title: 'DiffCompare',
-      token: variables.editToken,
-      text: 'Counting: \n* One \n* Two \n* Three',
-    });
-  });
-
-  it('should edit a page, revision 4', async () => {
-    variables.revision4 = await utils.edit(user, {
+    const editPage = await utils.edit(user, {
       title: 'DiffCompare',
       token: variables.editToken,
       text: 'Counting: \n* One \n* Two',
     });
+
+    assert.equal(editPage.edit.result, 'Success');
+  });
+
+  it('should edit a page, revision 3', async () => {
+    const editPage = await utils.edit(user, {
+      title: 'DiffCompare',
+      token: variables.editToken,
+      text: 'Counting: \n* One \n* Two \n* Three',
+    });
+
+    assert.equal(editPage.edit.result, 'Success');
+    variables.revision3 = editPage.edit.newrevid;
+  });
+
+  it('should edit a page, revision 4', async () => {
+    const editPage = await utils.edit(user, {
+      title: 'DiffCompare',
+      token: variables.editToken,
+      text: 'Counting: \n* One \n* Two',
+    });
+
+    assert.equal(editPage.edit.result, 'Success');
+    variables.revision4 = editPage.edit.newrevid;
   });
 
   it('should compare revisions 1 and 4', async () => {

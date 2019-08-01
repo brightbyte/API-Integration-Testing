@@ -6,18 +6,21 @@ const loginToken = requestAgent => requestAgent
   .expect(200)
   .then(response => response.body.query.tokens.logintoken);
 
-const login = (requestAgent, username, password, token) => requestAgent
-  .post('')
-  .type('form')
-  .send({
-    action: 'login',
-    lgname: username,
-    lgpassword: password,
-    lgtoken: token,
-    format: 'json',
-  })
-  .expect(200)
-  .then(response => response.body.login);
+const login = async (requestAgent, username, password) => {
+  const token = await loginToken(requestAgent);
+  return requestAgent
+    .post('')
+    .type('form')
+    .send({
+      action: 'login',
+      lgname: username,
+      lgpassword: password,
+      lgtoken: token,
+      format: 'json',
+    })
+    .expect(200)
+    .then(response => response.body.login);
+};
 
 const editToken = requestAgent => requestAgent
   .get('')
@@ -52,7 +55,6 @@ const protect = (requestAgent, params) => {
 };
 
 module.exports = {
-  loginToken,
   login,
   editToken,
   edit,

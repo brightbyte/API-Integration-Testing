@@ -20,10 +20,7 @@ describe('Test page protection levels and effectiveness', function () {
 
   before(async () => {
     // Login admin
-    const loginTokenForAdmin = await utils.loginToken(admin);
-    const loginAdmin = await utils.login(admin, config.admin.name,
-      config.admin.password, loginTokenForAdmin);
-
+    const loginAdmin = await utils.login(admin, config.admin.name, config.admin.password);
     assert.equal(loginAdmin.result, 'Success');
 
     // Get edit token for admin
@@ -65,10 +62,7 @@ describe('Test page protection levels and effectiveness', function () {
     assert.equal(addAutoConfirmedProtection.protections[0].edit, 'autoconfirmed');
 
     // Login wikiUser
-    const loginTokenForWikiuser = await utils.loginToken(wikiUser);
-    const loginWikiUser = await utils.login(wikiUser, config.user.name,
-      config.user.password, loginTokenForWikiuser);
-
+    const loginWikiUser = await utils.login(wikiUser, config.user.name, config.user.password);
     assert.equal(loginWikiUser.result, 'Success');
 
     // Get edit token for wikiUser

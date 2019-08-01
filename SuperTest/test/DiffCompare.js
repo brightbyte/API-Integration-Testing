@@ -13,8 +13,7 @@ describe('Diff Compare with Variables', function () {
   const variables = {};
 
   before(async () => {
-    const loginToken = await utils.loginToken(user);
-    const login = await utils.login(user, config.user.name, config.user.password, loginToken);
+    const login = await utils.login(user, config.user.name, config.user.password);
 
     assert.equal(login.result, 'Success');
 

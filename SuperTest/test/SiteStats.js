@@ -1,7 +1,7 @@
 const { assert } = require('chai');
 const request = require('supertest');
 const config = require('../config.json');
-const utils = require('../utils');
+const utils = require('../actionapi');
 
 
 describe("Testing site statistics' edits value", function () {

@@ -14,7 +14,7 @@ describe('Diff Compare with Variables', function () {
 
   before(async () => {
     const loginToken = await utils.loginToken(user);
-    await utils.login(user, config.user.name, config.user.password, loginToken);
+    await utils.login(user, config.root_user.name, config.root_user.password, loginToken);
 
     variables.editToken = await utils.editToken(user);
   });

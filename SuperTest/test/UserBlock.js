@@ -2,43 +2,62 @@ const { assert } = require('chai');
 const fixtures = require('../fixtures');
 const api = require('../actionapi');
 
-describe('Blocking a user', function () {
+describe('Blocking a user', function testBlockingAUser() {
   this.timeout('5s');
 
-  let name, eve;
+  let pageTitle, eve, mindy;
 
-  before(() => {
-    name = api.title('Block_');
-    eve = api.agent('Eve_');
+  before(async () => {
+    [pageTitle, eve, mindy] = await Promise.all([
+      api.title('Block_'),
+      api.agent('Eve_'),
+      fixtures.mindy(),
+    ]);
   });
 
-  it('should edit a page', () => {
-    eve.edit(name, 'One', 'first'); // FIXME
+  it('the user should edit a page', async () => {
+    await eve.edit(pageTitle, { text: 'One', comment: 'first' });
   });
 
-  it('should block a user', () => {
-    fixtures.mindy.action('blockuser', { // FIXME
-      user: eve.name,
+  it('an admin should block the user', async () => {
+    const result = await mindy.action('block', {
+      user: eve.username,
       reason: 'testing',
-    }, 'POST').then((response) => {
-      assert.equal(response.body.blockuser.result, 'Success');
-    });
+      token: await mindy.token(),
+    }, 'POST');
+
+    assert.exists(result.block.id);
+    assert.equal(result.block.userID, eve.userid);
+    assert.equal(result.block.user, eve.username);
   });
 
-  it('should fail to edit a page', () => {
-    eve.edit(name, 'Two', 'second'); // FIXME
+  it('the user should fail to edit a page', async () => {
+    const error = await eve.actionError(
+      'edit',
+      {
+        title: pageTitle,
+        text: 'Two',
+        comment: 'second',
+        token: await eve.token('csrf'),
+      },
+      'POST',
+    );
+    assert.equal(error.code, 'blocked');
   });
 
-  it('should unblock a user', () => {
-    fixtures.mindy.action('blockuser', { // FIXME
-      user: eve.name,
+  it('an admin should unblock the user', async () => {
+    const result = await mindy.action('unblock', {
+      user: eve.username,
       reason: 'testing',
-    }, 'POST').then((response) => {
-      assert.equal(response.body.blockuser.result, 'Success');
-    });
+      token: await mindy.token(),
+    }, 'POST');
+
+    assert.exists(result.unblock.id);
+    assert.equal(result.unblock.userid, eve.userid);
+    assert.equal(result.unblock.user, eve.username);
   });
 
-  it('should by able to edit a page', () => {
-    eve.edit(name, 'Three', 'third'); // FIXME
+  it('the user should by able to edit a page again', async () => {
+    await eve.edit(pageTitle, { text: 'Three', comment: 'third' });
   });
 });
